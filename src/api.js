@@ -3,17 +3,16 @@ import axios from 'axios';
 const OLLAMA_API_BASE_URL = '/api';
 
 // Function to generate a completion
-export const generateCompletion = async (model, prompt, options = {}) => {
+export const generateCompletion = async (prompt, model = 'llama2:latest') => {
   try {
-    const response = await axios.post(`${OLLAMA_API_BASE_URL}/generate`, {
-      model,
+    const response = await axios.post('http://127.0.0.1:11434/api/generate', {
       prompt,
-      stream: false,
-      options,
+      model, // Use your existing model name
+      // other parameters
     });
-    return response.data.response;
+    return response.data;
   } catch (error) {
-    console.error('Error generating completion:', error);
+    console.error('Error calling Ollama API:', error);
     throw error;
   }
 };
