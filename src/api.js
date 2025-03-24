@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const OLLAMA_API_BASE_URL = 'http://127.0.0.1:11434';
+const OLLAMA_API_BASE_URL = '/api';
 
 // Function to generate a completion
 export const generateCompletion = async (model, prompt, options = {}) => {
