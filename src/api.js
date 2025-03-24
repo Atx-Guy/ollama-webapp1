@@ -1,15 +1,32 @@
 import axios from 'axios';
 
-const OLLAMA_API_BASE_URL = '/api';
-
 // Function to generate a completion
-export const generateCompletion = async (prompt, model = 'llama2:latest') => {
+export const generateCompletion = async (model = 'llama2:latest', prompt) => {
   try {
     const response = await axios.post('http://127.0.0.1:11434/api/generate', {
+      model,
       prompt,
-      model, // Use your existing model name
-      // other parameters
+      stream: false // Disable streaming to get the full response at once
     });
+    
+    // Based on our test, we can see Ollama returns { response: "text" }
+    if (response.data && typeof response.data === 'object') {
+      // Modern Ollama versions return response in this format
+      if (response.data.response) {
+        return response.data.response;
+      } 
+      // Fallbacks for other potential formats
+      else if (response.data.text) {
+        return response.data.text;
+      }
+      // If response is the entire object, stringify it
+      else {
+        console.log('Response data:', response.data);
+        return JSON.stringify(response.data);
+      }
+    }
+    
+    // If response is plain text
     return response.data;
   } catch (error) {
     console.error('Error calling Ollama API:', error);
@@ -17,27 +34,10 @@ export const generateCompletion = async (prompt, model = 'llama2:latest') => {
   }
 };
 
-// Function to generate a chat completion
-export const generateChatCompletion = async (model, messages, options = {}, tools = []) => {
-  try {
-    const response = await axios.post(`${OLLAMA_API_BASE_URL}/chat`, {
-      model,
-      messages,
-      stream: false,
-      options,
-      tools,
-    });
-    return response.data.message.content;
-  } catch (error) {
-    console.error('Error generating chat completion:', error);
-    throw error;
-  }
-};
-
 // Function to list available models
 export const listModels = async () => {
   try {
-    const response = await axios.get(`${OLLAMA_API_BASE_URL}/tags`);
+    const response = await axios.get('http://127.0.0.1:11434/api/tags');
     return response.data.models;
   } catch (error) {
     console.error('Error listing models:', error);
@@ -45,30 +45,12 @@ export const listModels = async () => {
   }
 };
 
-// Function to show model details
-export const showModelDetails = async (model) => {
+// Function to check if Ollama server is running
+export const checkServerStatus = async () => {
   try {
-    const response = await axios.post(`${OLLAMA_API_BASE_URL}/show`, {
-      model,
-    });
-    return response.data;
+    const response = await axios.get('http://127.0.0.1:11434/api/version');
+    return { connected: true, version: response.data.version };
   } catch (error) {
-    console.error('Error showing model details:', error);
-    throw error;
-  }
-};
-
-// Function to generate embeddings
-export const generateEmbeddings = async (model, input, options = {}) => {
-  try {
-    const response = await axios.post(`${OLLAMA_API_BASE_URL}/embed`, {
-      model,
-      input,
-      options,
-    });
-    return response.data.embeddings;
-  } catch (error) {
-    console.error('Error generating embeddings:', error);
-    throw error;
+    return { connected: false, error };
   }
 };
