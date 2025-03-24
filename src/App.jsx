@@ -1,5 +1,5 @@
 import React from 'react';
-import OllamaCompletion from './OllamaCompletion'; // Import the component
+import OllamaCompletion from './OllamaCompletion';
 
 const App = () => {
   const modelName = "llama2"; // Or any model you want to use.
